@@ -303,7 +303,8 @@ static int execve_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	const char __user **filename_user =
 		(const char **)&PT_REGS_PARM1(real_regs);
 
-	return ksu_handle_execve_sucompat(AT_FDCWD, filename_user, NULL, NULL,
+	int at_fdcwd = AT_FDCWD;
+	return ksu_handle_execve_sucompat(&at_fdcwd, filename_user, NULL, NULL,
 					  NULL);
 }
 

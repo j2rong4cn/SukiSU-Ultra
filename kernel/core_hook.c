@@ -389,7 +389,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	// Both root manager and root processes should be allowed to get version
 	if (arg2 == CMD_GET_VERSION) {
 		u32 version = KERNEL_SU_VERSION;
-		if (copy_to_user(arg3, &version, sizeof(version))) {
+		if (copy_to_user((void __user *)arg3, &version, sizeof(version))) {
 			pr_err("prctl reply error, cmd: %lu\n", arg2);
 		}
 		u32 version_flags = 0;
@@ -397,7 +397,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		version_flags |= 0x1;
 #endif
 		if (arg4 &&
-		    copy_to_user(arg4, &version_flags, sizeof(version_flags))) {
+		    copy_to_user((void __user *)arg4, &version_flags, sizeof(version_flags))) {
 			pr_err("prctl reply error, cmd: %lu\n", arg2);
 		}
 		return 0;
@@ -444,7 +444,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		if (!from_root) {
 			return 0;
 		}
-		if (!ksu_handle_sepolicy(arg3, arg4)) {
+		if (!ksu_handle_sepolicy(arg3, (void __user *)arg4)) {
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
 				pr_err("sepolicy: prctl reply error\n");
 			}
@@ -469,9 +469,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		bool success = ksu_get_allow_list(array, &array_length,
 						  arg2 == CMD_GET_ALLOW_LIST);
 		if (success) {
-			if (!copy_to_user(arg4, &array_length,
+			if (!copy_to_user((void __user *)arg4, &array_length,
 					  sizeof(array_length)) &&
-			    !copy_to_user(arg3, array,
+			    !copy_to_user((void __user *)arg3, array,
 					  sizeof(u32) * array_length)) {
 				if (copy_to_user(result, &reply_ok,
 						 sizeof(reply_ok))) {
@@ -495,7 +495,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		} else {
 			pr_err("unknown cmd: %lu\n", arg2);
 		}
-		if (!copy_to_user(arg4, &allow, sizeof(allow))) {
+		if (!copy_to_user((void __user *)arg4, &allow, sizeof(allow))) {
 			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
 				pr_err("prctl reply error, cmd: %lu\n", arg2);
 			}
@@ -871,7 +871,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 		bool success = ksu_get_app_profile(&profile);
 		if (success) {
-			if (copy_to_user(arg3, &profile, sizeof(profile))) {
+			if (copy_to_user((void __user *)arg3, &profile, sizeof(profile))) {
 				pr_err("copy profile failed\n");
 				return 0;
 			}
@@ -899,7 +899,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	}
 
 	if (arg2 == CMD_IS_SU_ENABLED) {
-		if (copy_to_user(arg3, &ksu_su_compat_enabled,
+		if (copy_to_user((void __user *)arg3, &ksu_su_compat_enabled,
 				 sizeof(ksu_su_compat_enabled))) {
 			pr_err("copy su compat failed\n");
 			return 0;
